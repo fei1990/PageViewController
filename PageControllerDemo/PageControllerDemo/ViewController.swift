@@ -13,10 +13,28 @@ class ViewController: UIViewController, UIPageViewControllerDelegate, UIPageView
     var pageController: UIPageViewController? = nil
     
     lazy var pageContentArr: [String] = [String]()
+    
+    
+    
+    
+    
+    func pushNextVc() {
+        let pageVc = FiPagerViewController()
+//        self.navigationController?.pushViewController(pageVc, animated: true)
+        
+        self.present(pageVc, animated: true, completion: nil)
+    }
+    
 
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        
+        let btn: UIButton = UIButton(type: .system)
+        btn.setTitle("push", for: .normal)
+        btn.frame = CGRect(x: 50, y: 300, width: 60, height: 40)
+        btn.addTarget(self, action: #selector(pushNextVc), for: .touchUpInside)
+        self.view.addSubview(btn)
         
         let testModule = SubClass1()
         testModule.foo()
@@ -43,9 +61,9 @@ class ViewController: UIViewController, UIPageViewControllerDelegate, UIPageView
             
         })
         
-        pageController?.view.frame = self.view.frame
-        addChildViewController(pageController!)
-        view.addSubview((pageController?.view)!)
+//        pageController?.view.frame = self.view.frame
+//        addChildViewController(pageController!)
+//        view.addSubview((pageController?.view)!)
     }
 
     override func didReceiveMemoryWarning() {

@@ -15,6 +15,7 @@
 		7B8442781DDFFEF7003C7452 /* ContentViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B8442771DDFFEF7003C7452 /* ContentViewController.swift */; };
 		7B84427D1DE1A101003C7452 /* AccessPermissionsModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B84427C1DE1A101003C7452 /* AccessPermissionsModule.swift */; };
 		7B8442801DE1A4F7003C7452 /* Module1.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B84427F1DE1A4F7003C7452 /* Module1.swift */; };
+		B67950971DE290F200428706 /* FiPagerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B67950961DE290F200428706 /* FiPagerViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -28,6 +29,7 @@
 		7B8442771DDFFEF7003C7452 /* ContentViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ContentViewController.swift; sourceTree = "<group>"; };
 		7B84427C1DE1A101003C7452 /* AccessPermissionsModule.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AccessPermissionsModule.swift; sourceTree = "<group>"; };
 		7B84427F1DE1A4F7003C7452 /* Module1.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Module1.swift; sourceTree = "<group>"; };
+		B67950961DE290F200428706 /* FiPagerViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FiPagerViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -69,6 +71,7 @@
 				7B0DD6E31DDFF6430022AC2B /* Info.plist */,
 				7B84427C1DE1A101003C7452 /* AccessPermissionsModule.swift */,
 				7B84427F1DE1A4F7003C7452 /* Module1.swift */,
+				B67950961DE290F200428706 /* FiPagerViewController.swift */,
 			);
 			path = PageControllerDemo;
 			sourceTree = "<group>";
@@ -149,6 +152,7 @@
 				7B84427D1DE1A101003C7452 /* AccessPermissionsModule.swift in Sources */,
 				7B8442801DE1A4F7003C7452 /* Module1.swift in Sources */,
 				7B0DD6DA1DDFF6430022AC2B /* ViewController.swift in Sources */,
+				B67950971DE290F200428706 /* FiPagerViewController.swift in Sources */,
 				7B8442781DDFFEF7003C7452 /* ContentViewController.swift in Sources */,
 				7B0DD6D81DDFF6430022AC2B /* AppDelegate.swift in Sources */,
 			);
