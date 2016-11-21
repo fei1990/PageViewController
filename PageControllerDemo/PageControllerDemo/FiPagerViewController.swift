@@ -15,7 +15,7 @@ let tabGap = 10  //标签间隙
 
 class FiPagerViewController: UIViewController {
 
-    private lazy var contentScrollView: UIScrollView? = {
+    fileprivate lazy var contentScrollView: UIScrollView? = {
         let scrollView: UIScrollView = UIScrollView(frame: CGRect(x: 0, y: 64, width: Int(self.view.frame.size.width), height: tabHeight))
         scrollView.autoresizingMask = .flexibleWidth
         scrollView.scrollsToTop = false
@@ -24,14 +24,16 @@ class FiPagerViewController: UIViewController {
         scrollView.showsVerticalScrollIndicator = false
         scrollView.showsHorizontalScrollIndicator = false
         scrollView.backgroundColor = UIColor.red
-        
+        scrollView.delegate = self
         return scrollView
     }()
     
-    private lazy var pageViewController: UIPageViewController = UIPageViewController(transitionStyle: .scroll, navigationOrientation: .horizontal, options: nil)
+    fileprivate lazy var pageViewController: UIPageViewController = UIPageViewController(transitionStyle: .scroll, navigationOrientation: .horizontal, options: nil)
     
     
     fileprivate var controllersArr: Array = [UIViewController]()
+    
+    private var tabTitleViewsArr: Array = [UILabel]()
     
     
     override func viewDidLoad() {
@@ -42,6 +44,8 @@ class FiPagerViewController: UIViewController {
         (pageViewController.view.subviews[0] as! UIScrollView).delegate = self
         pageViewController.delegate = self
         pageViewController.dataSource = self
+        
+        defaultSelectedPageView(7)
         
     }
     
@@ -74,11 +78,32 @@ class FiPagerViewController: UIViewController {
             contentWidth += (tabV.frame.size.width + CGFloat(tabGap))
         }
         
-        contentScrollView?.contentSize = CGSize(width: contentWidth + CGFloat(tabGap), height: 0)
+        contentScrollView?.contentSize = CGSize(width: contentWidth + CGFloat(tabGap), height: CGFloat(tabHeight))
+        
+    }
+    
+    func defaultSelectedPageView(_ index: Int) {
+        
+        let contentVc = controllersArr[index]
+        
+        let tabTitleLbl = tabTitleViewsArr[index]
+        
+        let visibleRect = CGRect(x: (tabTitleLbl.frame.size.width + CGFloat(tabGap)) * CGFloat(index) + CGFloat(tabGap), y: CGFloat(0), width: tabTitleLbl.frame.size.width, height: CGFloat(tabHeight))
+        DispatchQueue.main.async {
+            self.pageViewController.setViewControllers([contentVc], direction: .forward, animated: true, completion: nil)
+            self.contentScrollView?.scrollRectToVisible(visibleRect, animated: true)
+        }
+        
+        
+        
         
     }
     
     
+    /// 创建tabView指定位置的lbl
+    ///
+    /// - Parameter index: tabView的索引位置
+    /// - Returns: 返回创建好的view
     private func tabView(atIndex index: Int) -> UIView! {
         
         let tabText = tabContent(self, atIndex: index)
@@ -96,6 +121,8 @@ class FiPagerViewController: UIViewController {
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(tabViewTapped(_:)))
         lbl.addGestureRecognizer(tapGesture)
         
+        tabTitleViewsArr.append(lbl)
+        
         return lbl
     }
     
@@ -107,12 +134,6 @@ class FiPagerViewController: UIViewController {
     func getViewController(_ index: Int) {
         let contentVc = controllersForPager(self, index)
         controllersArr.append(contentVc)
-        if index == 0 {
-            DispatchQueue.main.async {
-                self.pageViewController.setViewControllers([contentVc], direction: .forward, animated: true, completion: nil)
-            }
-            
-        }
     }
     
     
@@ -172,7 +193,12 @@ extension FiPagerViewController: UIPageViewControllerDataSource, UIPageViewContr
 extension FiPagerViewController: UIScrollViewDelegate {
     
     public func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        
+        if scrollView == contentScrollView {
+            debugPrint(scrollView.contentOffset.x)
+        }
+        if scrollView == pageViewController.view.subviews[0] {
+            
+        }
     }
     
 }
