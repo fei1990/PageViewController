@@ -21,8 +21,8 @@ class ViewController: UIViewController, UIPageViewControllerDelegate, UIPageView
     func pushNextVc() {
         let pageVc = FiPagerViewController()
 //        self.navigationController?.pushViewController(pageVc, animated: true)
-        
-        self.present(pageVc, animated: true, completion: nil)
+        let na = UINavigationController(rootViewController: pageVc)
+        self.navigationController?.present(na, animated: true, completion: nil)
     }
     
 

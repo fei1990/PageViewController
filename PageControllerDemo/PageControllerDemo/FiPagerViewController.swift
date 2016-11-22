@@ -9,7 +9,7 @@
 import UIKit
 
 
-let tabHeight = 44
+let tabHeight = 30
 
 let tabGap = 10  //标签间隙
 
@@ -35,17 +35,21 @@ class FiPagerViewController: UIViewController {
     
     private var tabTitleViewsArr: Array = [UILabel]()
     
+    /// 记录titleLbl的横坐标
+    private var tabTitleView_X: CGFloat = 0
+    
     
     override func viewDidLoad() {
         super.viewDidLoad()
         self.view.backgroundColor = UIColor.white
+        
+        self.navigationItem.leftBarButtonItem = UIBarButtonItem.init(title: "返回", style: .plain, target: self, action: #selector(FiPagerViewController.dismissVc))
+        
         reloadDataForPager()
         
-        (pageViewController.view.subviews[0] as! UIScrollView).delegate = self
-        pageViewController.delegate = self
-        pageViewController.dataSource = self
+        pageViewControllerSet()
         
-        defaultSelectedPageView(7)
+        defaultSelectedPageView(4)
         
     }
     
@@ -59,7 +63,12 @@ class FiPagerViewController: UIViewController {
         // Dispose of any resources that can be recreated.
     }
     
+    func dismissVc() {
+        self.dismiss(animated: true, completion: nil)
+    }
+    
 
+    /// reload
     private func reloadDataForPager() {
         
         self.view.insertSubview(contentScrollView!, at: 0)
@@ -82,21 +91,48 @@ class FiPagerViewController: UIViewController {
         
     }
     
-    func defaultSelectedPageView(_ index: Int) {
+    /// 添加pageViewController到self上
+    private func pageViewControllerSet() {
         
-        let contentVc = controllersArr[index]
+        (pageViewController.view.subviews[0] as! UIScrollView).delegate = self
+        pageViewController.delegate = self
+        pageViewController.dataSource = self
+        self.addChildViewController(pageViewController)
+        self.view.addSubview(pageViewController.view)
+        pageViewController.view.backgroundColor = UIColor.purple
+        let pageView_Y = (contentScrollView?.frame)!.height + (contentScrollView?.frame)!.origin.y
         
-        let tabTitleLbl = tabTitleViewsArr[index]
+        pageViewController.view.frame = CGRect(x: 0, y: pageView_Y, width: self.view.frame.size.width, height: self.view.frame.size.height - pageView_Y)
         
-        let visibleRect = CGRect(x: (tabTitleLbl.frame.size.width + CGFloat(tabGap)) * CGFloat(index) + CGFloat(tabGap), y: CGFloat(0), width: tabTitleLbl.frame.size.width, height: CGFloat(tabHeight))
+    }
+    
+    /// 默认显示第几个controller 一般情况显示第一个
+    ///
+    /// - Parameter index: 索引
+    private func defaultSelectedPageView(_ index: Int) {
+        
+        assert(index >= 0 && index < controllersArr.count, "index必须大于等于零 小于controllersArr.count")
+        
+        let contentVc = self.contentViewController(index)
+        
+        let visibleRect = tabTitleLblVisibleRect(index)
+        
         DispatchQueue.main.async {
-            self.pageViewController.setViewControllers([contentVc], direction: .forward, animated: true, completion: nil)
+            self.pageViewController.setViewControllers([contentVc!], direction: .forward, animated: true, completion: nil)
             self.contentScrollView?.scrollRectToVisible(visibleRect, animated: true)
         }
         
+    }
+    
+    /// tabTitleView滚动到的可视区域
+    ///
+    /// - Parameter index: index
+    /// - Returns: 返回可视区域
+    private func tabTitleLblVisibleRect(_ index: Int) -> CGRect {
+        assert(index >= 0 && index < tabTitleViewsArr.count, "index必须大于等于零 小于controllersArr.count")
         
-        
-        
+        let tabTitleLbl = tabTitleViewsArr[index]
+        return CGRect(x: (tabTitleLbl.frame.size.width + CGFloat(tabGap)) * CGFloat(index) + CGFloat(tabGap) + self.view.frame.size.width/2 - tabTitleLbl.frame.size.width/2 - CGFloat(tabGap)/4, y: CGFloat(0), width: tabTitleLbl.frame.size.width, height: CGFloat(tabHeight))
     }
     
     
@@ -105,6 +141,8 @@ class FiPagerViewController: UIViewController {
     /// - Parameter index: tabView的索引位置
     /// - Returns: 返回创建好的view
     private func tabView(atIndex index: Int) -> UIView! {
+        
+        tabTitleView_X += CGFloat(tabGap) + ((tabTitleViews(index-1) == nil) ? 0 : (tabTitleViews(index-1)! as UILabel).frame.size.width)
         
         let tabText = tabContent(self, atIndex: index)
         let tabTextWidth: CGFloat = tabText.textWidth(CGFloat(tabHeight), fontSize: 14)
@@ -115,14 +153,12 @@ class FiPagerViewController: UIViewController {
         lbl.font = UIFont.systemFont(ofSize: 14)
         lbl.text = tabText
         lbl.isUserInteractionEnabled = true
-        lbl.frame = CGRect(x: CGFloat(tabTextWidth + CGFloat(tabGap)) * CGFloat(index) + CGFloat(tabGap), y: 0.0, width: tabTextWidth, height: CGFloat(tabHeight))
-//        lbl.sizeToFit()
+        lbl.frame = CGRect(x: tabTitleView_X, y: 0.0, width: tabTextWidth, height: CGFloat(tabHeight))
         
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(tabViewTapped(_:)))
         lbl.addGestureRecognizer(tapGesture)
         
         tabTitleViewsArr.append(lbl)
-        
         return lbl
     }
     
@@ -141,17 +177,37 @@ class FiPagerViewController: UIViewController {
     ///
     /// - Parameter index: 位置索引
     /// - Returns: 返回对应controller
-    func viewController(_ index: Int) -> UIViewController? {
-        
-        guard (index >= 0 || index < controllersArr.count) else {
+    func contentViewController(_ index: Int) -> UIViewController? {
+        guard (index >= 0 && index < controllersArr.count) else {
             return nil
         }
-        
         return controllersArr[index]
+    }
+    
+    /// 根据索引取出titleLbl
+    ///
+    /// - Parameter index: 索引
+    /// - Returns: 返回titleLbl
+    private func tabTitleViews(_ index: Int) -> UILabel? {
+        guard ((index >= 0 && index < tabTitleViewsArr.count) && tabTitleViewsArr.count > 0) else {
+            return nil
+        }
+        return tabTitleViewsArr[index]
+    }
+    
+    /// 取contentVc在容器中的索引位置
+    ///
+    /// - Parameter contentVc: 内容controller
+    /// - Returns: 返回该controller的索引
+    fileprivate func index(ofVc contentVc: UIViewController) -> Int {
+        return controllersArr.index(of: contentVc)!
     }
     
     @objc private func tabViewTapped(_ tap: UIGestureRecognizer) {
         debugPrint((tap.view as! UILabel).tag)
+        let index = (tap.view as! UILabel).tag
+        let contentVc = controllersArr[index]
+        self.pageViewController.setViewControllers([contentVc], direction: .forward, animated: true, completion: nil)
     }
     
     
@@ -160,11 +216,11 @@ class FiPagerViewController: UIViewController {
     }
     
     func tabContent(_ pager: FiPagerViewController, atIndex index: Int) -> String {
-        return "rrrrfdsfsafdsafs"
+        return "fdsagsr\(index)"
     }
     
     func controllersForPager(_: FiPagerViewController, _ atIndex: Int) -> UIViewController {
-        return UIViewController()
+        return MyTableViewController()
     }
 
 }
@@ -178,7 +234,7 @@ extension FiPagerViewController: UIPageViewControllerDataSource, UIPageViewContr
         
         index = index - 1
         
-        return self.viewController(index)
+        return self.contentViewController(index)
     }
     
     func pageViewController(_ pageViewController: UIPageViewController, viewControllerAfter viewController: UIViewController) -> UIViewController? {
@@ -186,7 +242,17 @@ extension FiPagerViewController: UIPageViewControllerDataSource, UIPageViewContr
         
         index = index + 1
         
-        return self.viewController(index)
+        return self.contentViewController(index)
+    }
+    
+    func pageViewController(_ pageViewController: UIPageViewController, willTransitionTo pendingViewControllers: [UIViewController]) {
+//        debugPrint(pendingViewControllers.count)
+        
+        let vc = pendingViewControllers[0] as! MyTableViewController
+        
+        let index = self.index(ofVc: vc)
+        
+        debugPrint(index)
     }
 }
 
@@ -194,15 +260,14 @@ extension FiPagerViewController: UIScrollViewDelegate {
     
     public func scrollViewDidScroll(_ scrollView: UIScrollView) {
         if scrollView == contentScrollView {
-            debugPrint(scrollView.contentOffset.x)
+//            debugPrint(scrollView.contentOffset.x)
         }
         if scrollView == pageViewController.view.subviews[0] {
-            
+//            debugPrint(scrollView.contentOffset.x)
         }
     }
     
 }
-
 
 extension String {
     
@@ -214,8 +279,25 @@ extension String {
         let rect = (self as NSString).boundingRect(with: size, options: NSStringDrawingOptions.usesFontLeading, attributes: attributes, context: nil)
         
         return rect.size.width
-        
     }
     
+}
+
+
+/// Test
+class MyTableViewController: UITableViewController {
+    override func numberOfSections(in tableView: UITableView) -> Int {
+        return 1
+    }
+    
+    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return 10
+    }
+    
+    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = UITableViewCell()
+        cell.textLabel?.text = "\((indexPath as NSIndexPath).row)"
+        return cell
+    }
 }
 
