@@ -15,7 +15,26 @@ class ViewController: UIViewController, UIPageViewControllerDelegate, UIPageView
     lazy var pageContentArr: [String] = [String]()
     
     
+    fileprivate lazy var contentScrollView: UIScrollView? = {
+        let scrollView: UIScrollView = UIScrollView(frame: CGRect(x: 55, y: 64, width: Int(self.view.frame.size.width)/2, height: 200))
+        scrollView.autoresizingMask = .flexibleWidth
+        scrollView.scrollsToTop = false
+        scrollView.bounces = false
+        scrollView.isDirectionalLockEnabled = true
+        scrollView.showsVerticalScrollIndicator = false
+        scrollView.showsHorizontalScrollIndicator = false
+        scrollView.backgroundColor = UIColor.red
+        scrollView.contentSize = CGSize(width: 500, height: 200)
+        scrollView.clipsToBounds = false
+        return scrollView
+    }()
     
+    fileprivate lazy var lbl: UILabel! = {
+        let lab = UILabel(frame: CGRect(x: 300, y: 80, width: 50, height: 20))
+        lab.backgroundColor = UIColor.cyan
+        lab.text = "dddd"
+        return lab
+    }()
     
     
     func pushNextVc() {
@@ -23,11 +42,20 @@ class ViewController: UIViewController, UIPageViewControllerDelegate, UIPageView
 //        self.navigationController?.pushViewController(pageVc, animated: true)
         let na = UINavigationController(rootViewController: pageVc)
         self.navigationController?.present(na, animated: true, completion: nil)
+        
+//        let rect: CGRect = CGRect(x: 300, y: 80, width: 50 + (contentScrollView!.frame.size.width/2 - 25), height: 20)
+//        contentScrollView?.scrollRectToVisible(rect, animated: true)
+        
     }
     
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        self.view.addSubview(contentScrollView!)
+        
+        
+        contentScrollView?.addSubview(lbl)
         
         
         let btn: UIButton = UIButton(type: .system)

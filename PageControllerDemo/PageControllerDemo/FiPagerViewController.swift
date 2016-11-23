@@ -9,11 +9,13 @@
 import UIKit
 
 
-let tabHeight = 30
+let tabHeight = 26
 
 let tabGap = 10  //标签间隙
 
 class FiPagerViewController: UIViewController {
+    
+    fileprivate lazy var tabTitleSArr: Array = ["fdsf0","fdsfds1","fdsatree2","fdsgfdggrh3","gtrhrggdsgfds4","f5","fds6","fdsafdsa7","fdsafdsagfdsbgfd8","fdsfdsafdsaa9","dfsawe10","dfaefwa11"]
 
     fileprivate lazy var contentScrollView: UIScrollView? = {
         let scrollView: UIScrollView = UIScrollView(frame: CGRect(x: 0, y: 64, width: Int(self.view.frame.size.width), height: tabHeight))
@@ -49,8 +51,12 @@ class FiPagerViewController: UIViewController {
         
         pageViewControllerSet()
         
-        defaultSelectedPageView(4)
+        defaultSelectedPageView(10)
         
+        
+        let v = UIView(frame: CGRect(x: 0, y: (contentScrollView?.frame)!.height + (contentScrollView?.frame)!.origin.y, width: (contentScrollView?.frame.size.width)!/2, height: 400))
+        v.backgroundColor = UIColor.purple
+        self.view.addSubview(v)
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -88,7 +94,7 @@ class FiPagerViewController: UIViewController {
         }
         
         contentScrollView?.contentSize = CGSize(width: contentWidth + CGFloat(tabGap), height: CGFloat(tabHeight))
-        
+        debugPrint("contentsize: \(contentScrollView?.contentSize.width)")
     }
     
     /// 添加pageViewController到self上
@@ -132,7 +138,10 @@ class FiPagerViewController: UIViewController {
         assert(index >= 0 && index < tabTitleViewsArr.count, "index必须大于等于零 小于controllersArr.count")
         
         let tabTitleLbl = tabTitleViewsArr[index]
-        return CGRect(x: (tabTitleLbl.frame.size.width + CGFloat(tabGap)) * CGFloat(index) + CGFloat(tabGap) + self.view.frame.size.width/2 - tabTitleLbl.frame.size.width/2 - CGFloat(tabGap)/4, y: CGFloat(0), width: tabTitleLbl.frame.size.width, height: CGFloat(tabHeight))
+        
+        let rect: CGRect = CGRect(x: tabTitleLbl.frame.origin.x, y: CGFloat(0), width: tabTitleLbl.frame.size.width + ((contentScrollView?.frame.size.width)!/2 - tabTitleLbl.frame.size.width/2), height: CGFloat(tabHeight))
+        return rect
+//        return CGRect(x: (tabTitleLbl.frame.size.width + CGFloat(tabGap)) * CGFloat(index) + CGFloat(tabGap) + self.view.frame.size.width/2 - tabTitleLbl.frame.size.width/2 - CGFloat(tabGap)/4, y: CGFloat(0), width: tabTitleLbl.frame.size.width, height: CGFloat(tabHeight))
     }
     
     
@@ -212,11 +221,11 @@ class FiPagerViewController: UIViewController {
     
     
     func numbersOfTab(_ pager: FiPagerViewController) -> Int {
-        return 12
+        return tabTitleSArr.count
     }
     
     func tabContent(_ pager: FiPagerViewController, atIndex index: Int) -> String {
-        return "fdsagsr\(index)"
+        return tabTitleSArr[index]
     }
     
     func controllersForPager(_: FiPagerViewController, _ atIndex: Int) -> UIViewController {
@@ -260,7 +269,7 @@ extension FiPagerViewController: UIScrollViewDelegate {
     
     public func scrollViewDidScroll(_ scrollView: UIScrollView) {
         if scrollView == contentScrollView {
-//            debugPrint(scrollView.contentOffset.x)
+            debugPrint(scrollView.contentOffset.x)
         }
         if scrollView == pageViewController.view.subviews[0] {
 //            debugPrint(scrollView.contentOffset.x)
