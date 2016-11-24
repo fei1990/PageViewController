@@ -29,10 +29,17 @@ class ViewController: UIViewController, UIPageViewControllerDelegate, UIPageView
         return scrollView
     }()
     
-    fileprivate lazy var lbl: UILabel! = {
-        let lab = UILabel(frame: CGRect(x: 300, y: 80, width: 50, height: 20))
+    fileprivate lazy var lbl0: UILabel! = {
+        let lab = UILabel(frame: CGRect(x: self.view.frame.size.width/5, y: 80, width: 40, height: 20))
         lab.backgroundColor = UIColor.cyan
-        lab.text = "dddd"
+        lab.text = "ddd"
+        return lab
+    }()
+    
+    fileprivate lazy var lbl: UILabel! = {
+        let lab = UILabel(frame: CGRect(x: 230, y: 40, width: 40, height: 20))
+        lab.backgroundColor = UIColor.cyan
+        lab.text = "ddd"
         return lab
     }()
     
@@ -43,7 +50,7 @@ class ViewController: UIViewController, UIPageViewControllerDelegate, UIPageView
         let na = UINavigationController(rootViewController: pageVc)
         self.navigationController?.present(na, animated: true, completion: nil)
         
-//        let rect: CGRect = CGRect(x: 300, y: 80, width: 50 + (contentScrollView!.frame.size.width/2 - 25), height: 20)
+//        let rect: CGRect = CGRect(x: 230, y: 80, width: 40 + (contentScrollView!.frame.size.width/2 - 20), height: 20)
 //        contentScrollView?.scrollRectToVisible(rect, animated: true)
         
     }
@@ -54,7 +61,7 @@ class ViewController: UIViewController, UIPageViewControllerDelegate, UIPageView
         
         self.view.addSubview(contentScrollView!)
         
-        
+        contentScrollView?.addSubview(lbl0)
         contentScrollView?.addSubview(lbl)
         
         
