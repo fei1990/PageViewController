@@ -14,6 +14,14 @@ class ViewController: UIViewController, UIPageViewControllerDelegate, UIPageView
     
     lazy var pageContentArr: [String] = [String]()
     
+    lazy var slider: UISlider = {
+        let sli: UISlider = UISlider(frame: CGRect(x: 40, y: 400, width: self.view.frame.size.width - 80, height: 30))
+        sli.addTarget(self, action: #selector(valueChanged(slider:)), for: .valueChanged)
+        
+        return sli
+        
+    }()
+    
     
     fileprivate lazy var contentScrollView: UIScrollView? = {
         let scrollView: UIScrollView = UIScrollView(frame: CGRect(x: 55, y: 64, width: Int(self.view.frame.size.width)/2, height: 200))
@@ -24,22 +32,22 @@ class ViewController: UIViewController, UIPageViewControllerDelegate, UIPageView
         scrollView.showsVerticalScrollIndicator = false
         scrollView.showsHorizontalScrollIndicator = false
         scrollView.backgroundColor = UIColor.red
-        scrollView.contentSize = CGSize(width: 500, height: 200)
+        scrollView.contentSize = CGSize(width: 900, height: 200)
         scrollView.clipsToBounds = false
         return scrollView
     }()
     
     fileprivate lazy var lbl0: UILabel! = {
-        let lab = UILabel(frame: CGRect(x: self.view.frame.size.width/5, y: 80, width: 40, height: 20))
+        let lab = UILabel(frame: CGRect(x: (self.contentScrollView?.frame.size.width)!/2 - 20, y: 40, width: 40, height: 20))
         lab.backgroundColor = UIColor.cyan
         lab.text = "ddd"
         return lab
     }()
     
     fileprivate lazy var lbl: UILabel! = {
-        let lab = UILabel(frame: CGRect(x: 230, y: 40, width: 40, height: 20))
+        let lab = UILabel(frame: CGRect(x: 200, y: 40, width: 90, height: 20))
         lab.backgroundColor = UIColor.cyan
-        lab.text = "ddd"
+        lab.text = "sss"
         return lab
     }()
     
@@ -53,6 +61,32 @@ class ViewController: UIViewController, UIPageViewControllerDelegate, UIPageView
 //        let rect: CGRect = CGRect(x: 230, y: 80, width: 40 + (contentScrollView!.frame.size.width/2 - 20), height: 20)
 //        contentScrollView?.scrollRectToVisible(rect, animated: true)
         
+        
+//        let rect: CGRect = CGRect(x: 245, y: 40, width: 90, height: 20)
+//        contentScrollView?.scrollRectToVisible(rect, animated: true)
+        
+    }
+    
+    func valueChanged(slider: UISlider) {
+        print(slider.value)
+        
+        let value: CGFloat = CGFloat(slider.value)
+        
+        let x_diff = (lbl.frame.minX - lbl0.frame.minX) * value + lbl0.frame.minX
+        
+//        print("x_diff = \(x_diff)")
+        
+        
+        let width_diff = (lbl0.frame.width + (lbl.frame.width - lbl0.frame.width) * value)/2 + (contentScrollView?.frame.width)!/2
+        
+//        print("width_diff = \(width_diff)")
+        
+        let rect = CGRect(x: x_diff, y: 40, width: width_diff, height: 20)
+        contentScrollView?.scrollRectToVisible(rect, animated: false)
+        print(rect)
+        
+//        let point: CGPoint = CGPoint(x: value*(contentScrollView?.frame.width)!, y: 0)
+//        contentScrollView?.setContentOffset(point, animated: false)
     }
     
 
@@ -61,9 +95,10 @@ class ViewController: UIViewController, UIPageViewControllerDelegate, UIPageView
         
         self.view.addSubview(contentScrollView!)
         
-        contentScrollView?.addSubview(lbl0)
+//        contentScrollView?.addSubview(lbl0)
         contentScrollView?.addSubview(lbl)
         
+        self.view.addSubview(slider)
         
         let btn: UIButton = UIButton(type: .system)
         btn.setTitle("push", for: .normal)
