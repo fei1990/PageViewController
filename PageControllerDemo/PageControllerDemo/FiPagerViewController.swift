@@ -8,6 +8,11 @@
 
 import UIKit
 
+enum PageScrollState {
+    case none
+    case tap
+    case swipe
+}
 
 let tabHeight = 26
 
@@ -44,6 +49,10 @@ class FiPagerViewController: UIViewController {
     
     fileprivate var tabIndex: Int = 0
     
+    fileprivate var pageScrollState: PageScrollState = .none
+    
+    fileprivate var nextTabLbl: UILabel!
+    
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -55,7 +64,7 @@ class FiPagerViewController: UIViewController {
         
         pageViewControllerSet()
         
-        defaultSelectedPageView(0)
+        defaultSelectedPageView(5)
         
         
         let v = UIView(frame: CGRect(x: 0, y: (contentScrollView?.frame)!.height + (contentScrollView?.frame)!.origin.y, width: (contentScrollView?.frame.size.width)!/2, height: 400))
@@ -250,6 +259,17 @@ class FiPagerViewController: UIViewController {
         return MyTableViewController()
     }
 
+    
+    func tabMovedWithOffsetRatio(_ offsetRatio: CGFloat) {
+        
+        if self.pageScrollState == .swipe {
+            let x_diff = ((contentScrollView?.frame.width)!/2 - self.nextTabLbl.frame.width/2) * offsetRatio + self.nextTabLbl.frame.minX
+            let rect = CGRect(x: x_diff, y: self.nextTabLbl.frame.minY, width: self.nextTabLbl.frame.width, height: self.nextTabLbl.frame.height)
+            contentScrollView?.scrollRectToVisible(rect, animated: false)
+        }
+        
+    }
+    
 }
 
 
@@ -273,22 +293,27 @@ extension FiPagerViewController: UIPageViewControllerDataSource, UIPageViewContr
     }
     
     func pageViewController(_ pageViewController: UIPageViewController, willTransitionTo pendingViewControllers: [UIViewController]) {
-    
+        
+        self.pageScrollState = .swipe
+        debugPrint("111")
+        let pendingIndex: Int = self.index(ofVc: pendingViewControllers[0] as! MyTableViewController)
+        
+        self.nextTabLbl = self.tabTitleView(pendingIndex)
     }
     
     func pageViewController(_ pageViewController: UIPageViewController, didFinishAnimating finished: Bool, previousViewControllers: [UIViewController], transitionCompleted completed: Bool) {
         
-        let preIndex = self.index(ofVc: previousViewControllers[0] as! MyTableViewController)
-        
-        print("preIndex: \(preIndex)")
-        let vcArr = pageViewController.viewControllers
-        
-        let index = self.index(ofVc: vcArr?[0] as! MyTableViewController)
-        debugPrint("index: \(index)")
-        
-        if completed {
-            moveTab(index, isSwipeRight: (index > preIndex))
-        }
+//        let preIndex = self.index(ofVc: previousViewControllers[0] as! MyTableViewController)
+//        
+////        print("preIndex: \(preIndex)")
+//        let vcArr = pageViewController.viewControllers
+//        
+//        let index = self.index(ofVc: vcArr?[0] as! MyTableViewController)
+////        debugPrint("index: \(index)")
+//        
+//        if completed {
+//            moveTab(index, isSwipeRight: (index > preIndex))
+//        }
         
     }
     
@@ -302,6 +327,9 @@ extension FiPagerViewController: UIScrollViewDelegate {
         }
         if scrollView == pageViewController.view.subviews[0] {
             
+            let ratio = scrollView.contentOffset.x/scrollView.frame.width - 1
+            tabMovedWithOffsetRatio(ratio)
+//            print(ratio)
         }
     }
     

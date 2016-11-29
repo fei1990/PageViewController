@@ -45,7 +45,7 @@ class ViewController: UIViewController, UIPageViewControllerDelegate, UIPageView
     }()
     
     fileprivate lazy var lbl: UILabel! = {
-        let lab = UILabel(frame: CGRect(x: 200, y: 40, width: 90, height: 20))
+        let lab = UILabel(frame: CGRect(x: 150, y: 40, width: 90, height: 20))
         lab.backgroundColor = UIColor.cyan
         lab.text = "sss"
         return lab
@@ -72,16 +72,31 @@ class ViewController: UIViewController, UIPageViewControllerDelegate, UIPageView
         
         let value: CGFloat = CGFloat(slider.value)
         
-        let x_diff = (lbl.frame.minX - lbl0.frame.minX) * value + lbl0.frame.minX
+//        let x_diff = (lbl.frame.minX - lbl0.frame.minX) * value + lbl0.frame.minX
+//        
+////        print("x_diff = \(x_diff)")
+//        
+//        
+//        let width_diff = (lbl0.frame.width + (lbl.frame.width - lbl0.frame.width) * value)/2 + (contentScrollView?.frame.width)!/2
+//        
+////        print("width_diff = \(width_diff)")
+//        
+//        let rect = CGRect(x: x_diff, y: 40, width: width_diff, height: 20)
         
-//        print("x_diff = \(x_diff)")
+        
+//        let lbl0X = (contentScrollView?.frame.width)!/2 - lbl0.frame.width/2 + lbl0.frame.minX
+//        
+//        let lblX = (contentScrollView?.frame.width)!/2 - lbl.frame.width/2 + lbl.frame.minX
+//        
+//        let x_diff = lblX - lbl0X
+//        
+//        
+//        let rect = CGRect(x: lbl0X + x_diff * value, y: 40, width: lbl.frame.width, height: 20)
         
         
-        let width_diff = (lbl0.frame.width + (lbl.frame.width - lbl0.frame.width) * value)/2 + (contentScrollView?.frame.width)!/2
+        let x_diff = ((contentScrollView?.frame.width)!/2 - lbl.frame.width/2) * value + lbl.frame.minX
+        let rect = CGRect(x: x_diff, y: 40, width: lbl.frame.width, height: 20)
         
-//        print("width_diff = \(width_diff)")
-        
-        let rect = CGRect(x: x_diff, y: 40, width: width_diff, height: 20)
         contentScrollView?.scrollRectToVisible(rect, animated: false)
         print(rect)
         
@@ -95,7 +110,7 @@ class ViewController: UIViewController, UIPageViewControllerDelegate, UIPageView
         
         self.view.addSubview(contentScrollView!)
         
-//        contentScrollView?.addSubview(lbl0)
+        contentScrollView?.addSubview(lbl0)
         contentScrollView?.addSubview(lbl)
         
         self.view.addSubview(slider)
