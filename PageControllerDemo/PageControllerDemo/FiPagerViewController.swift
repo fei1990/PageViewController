@@ -14,16 +14,16 @@ enum PageScrollState {
     case swipe
 }
 
-let tabHeight = 26
+let tabHeight: CGFloat = 26
 
-let tabGap = 10  //标签间隙
+let tabGap: CGFloat = 10  //标签间隙
 
 class FiPagerViewController: UIViewController {
     
     fileprivate lazy var tabTitleSArr: Array = ["fdsf0","fdsfds1","fdsatree2","fdsgfdggrh3","gtrhrggdsgfds4","f5","fds6","fdsafdsa7","fdsafdsagfdsbgfd8","fdsfdsafdsaa9","dfsawe10","dfaefwa11","fdsafds12","fsfdsf13","fsfsafsfsdf14","fd15","fsf16"]
 
     fileprivate lazy var contentScrollView: UIScrollView? = {
-        let scrollView: UIScrollView = UIScrollView(frame: CGRect(x: 0, y: 64, width: Int(self.view.frame.size.width), height: tabHeight))
+        let scrollView: UIScrollView = UIScrollView(frame: CGRect(x: 0, y: 64, width: Int(self.view.frame.size.width), height: Int(tabHeight)))
         scrollView.autoresizingMask = .flexibleWidth
         scrollView.scrollsToTop = false
 //        scrollView.bounces = false
@@ -45,14 +45,13 @@ class FiPagerViewController: UIViewController {
     /// 记录titleLbl的横坐标
     private var tabTitleView_X: CGFloat = 0
     
-    fileprivate var currentTabLbl: UILabel! = nil
-    
-    fileprivate var tabIndex: Int = 0
+    fileprivate var currentTabLbl: UILabel!
     
     fileprivate var pageScrollState: PageScrollState = .none
     
     fileprivate var nextTabLbl: UILabel!
     
+    fileprivate var visibleRect_X: CGFloat = tabGap
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -67,9 +66,9 @@ class FiPagerViewController: UIViewController {
         defaultSelectedPageView(5)
         
         
-        let v = UIView(frame: CGRect(x: 0, y: (contentScrollView?.frame)!.height + (contentScrollView?.frame)!.origin.y, width: (contentScrollView?.frame.size.width)!/2, height: 400))
-        v.backgroundColor = UIColor.purple
-        self.view.addSubview(v)
+//        let v = UIView(frame: CGRect(x: 0, y: (contentScrollView?.frame)!.height + (contentScrollView?.frame)!.origin.y, width: (contentScrollView?.frame.size.width)!/2, height: 400))
+//        v.backgroundColor = UIColor.purple
+//        self.view.addSubview(v)
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -135,7 +134,7 @@ class FiPagerViewController: UIViewController {
         
         let contentVc = self.contentViewController(index)
         
-        let visibleRect = tabTitleLblVisibleRect(index, swipeRight: true)
+        let visibleRect = tabTitleLblVisibleRect(index)
         
         DispatchQueue.main.async {
             self.pageViewController.setViewControllers([contentVc!], direction: .forward, animated: true, completion: nil)
@@ -143,25 +142,6 @@ class FiPagerViewController: UIViewController {
         }
         
     }
-    
-    /// tabTitleView滚动到的可视区域
-    ///
-    /// - Parameter index: index
-    /// - Parameter swipeRight: 是否向右滑动
-    /// - Returns: 返回可视区域
-    private func tabTitleLblVisibleRect(_ index: Int, swipeRight: Bool) -> CGRect {
-        assert(index >= 0 && index < tabTitleViewsArr.count, "index必须大于等于零 小于controllersArr.count")
-        
-        let tabTitleLbl = tabTitleViewsArr[index]
-        
-        guard swipeRight else {
-            let visibleX = tabTitleLbl.frame.origin.x - ((contentScrollView?.frame.size.width)!/2 - tabTitleLbl.frame.size.width/2)
-            return CGRect(x: visibleX <= 0 ? 0 :  visibleX, y: CGFloat(0), width: tabTitleLbl.frame.size.width, height: CGFloat(tabHeight))
-        }
-        
-        return CGRect(x: tabTitleLbl.frame.origin.x, y: CGFloat(0), width: tabTitleLbl.frame.size.width + ((contentScrollView?.frame.size.width)!/2 - tabTitleLbl.frame.size.width/2), height: CGFloat(tabHeight))
-    }
-    
     
     /// 创建tabView指定位置的lbl
     ///
@@ -230,19 +210,47 @@ class FiPagerViewController: UIViewController {
         return controllersArr.index(of: contentVc)!
     }
     
-    fileprivate func moveTab(_ index: Int?, isSwipeRight: Bool) {
+    /// tabTitleView滚动到的可视区域
+    ///
+    /// - Parameter index: index
+    /// - Returns: 返回可视区域
+    private func tabTitleLblVisibleRect(_ index: Int) -> CGRect {
+        assert(index >= 0 && index < tabTitleViewsArr.count, "index必须大于等于零 小于controllersArr.count")
         
-//        let nextLbl: UILabel = tabTitleView(self.tabIndex)!
+        self.currentTabLbl = tabTitleView(index)
         
-        let visibleRect = tabTitleLblVisibleRect(index!, swipeRight: isSwipeRight)
+        self.visibleRect_X = self.currentTabLbl.frame.minX - ((self.contentScrollView?.frame.width)!/2 - self.currentTabLbl.frame.width/2)
         
-        contentScrollView?.scrollRectToVisible(visibleRect, animated: true)
+        let rect = CGRect(x: self.visibleRect_X, y: self.currentTabLbl.frame.minY, width: (self.contentScrollView?.frame.width)!, height: self.currentTabLbl.frame.height)
+        
+        return rect
+    }
+    
+    fileprivate func tabMovedWithOffsetRatio(_ offsetRatio: CGFloat) {
+        
+        if self.pageScrollState == .none {
+            return
+        }
+        
+        if self.pageScrollState == .swipe {
+            
+            let rect = CGRect(x: visibleRect_X + (self.nextTabLbl.frame.width/2 + self.currentTabLbl.frame.width/2 + tabGap) * offsetRatio, y: self.currentTabLbl.frame.minY, width: (self.contentScrollView?.frame.width)!, height: self.currentTabLbl.frame.height)
+            contentScrollView?.scrollRectToVisible(rect, animated: false)
+        }
         
     }
     
     @objc private func tabViewTapped(_ tap: UIGestureRecognizer) {
-        let index = (tap.view as! UILabel).tag
-        let contentVc = controllersArr[index]
+        
+        self.pageScrollState = .tap
+        
+        let currentIndex = (tap.view as! UILabel).tag
+        
+        let rect = tabTitleLblVisibleRect(currentIndex)
+        
+        self.contentScrollView?.scrollRectToVisible(rect, animated: true)
+        
+        let contentVc = contentViewController(currentIndex)!
         self.pageViewController.setViewControllers([contentVc], direction: .forward, animated: true, completion: nil)
     }
     
@@ -257,17 +265,6 @@ class FiPagerViewController: UIViewController {
     
     func controllersForPager(_: FiPagerViewController, _ atIndex: Int) -> UIViewController {
         return MyTableViewController()
-    }
-
-    
-    func tabMovedWithOffsetRatio(_ offsetRatio: CGFloat) {
-        
-        if self.pageScrollState == .swipe {
-            let x_diff = ((contentScrollView?.frame.width)!/2 - self.nextTabLbl.frame.width/2) * offsetRatio + self.nextTabLbl.frame.minX
-            let rect = CGRect(x: x_diff, y: self.nextTabLbl.frame.minY, width: self.nextTabLbl.frame.width, height: self.nextTabLbl.frame.height)
-            contentScrollView?.scrollRectToVisible(rect, animated: false)
-        }
-        
     }
     
 }
@@ -295,25 +292,30 @@ extension FiPagerViewController: UIPageViewControllerDataSource, UIPageViewContr
     func pageViewController(_ pageViewController: UIPageViewController, willTransitionTo pendingViewControllers: [UIViewController]) {
         
         self.pageScrollState = .swipe
-        debugPrint("111")
+        
+        let currentIndex: Int = self.index(ofVc: pageViewController.viewControllers![0] as! MyTableViewController)
+        
+        self.currentTabLbl = self.tabTitleView(currentIndex)
+        
         let pendingIndex: Int = self.index(ofVc: pendingViewControllers[0] as! MyTableViewController)
         
         self.nextTabLbl = self.tabTitleView(pendingIndex)
+        
+        self.visibleRect_X = self.currentTabLbl.frame.minX - ((self.contentScrollView?.frame.width)!/2 - self.currentTabLbl.frame.width/2)
+        
+        debugPrint("currentIndex: \(currentIndex)...... pendingIndex: \(pendingIndex)")
     }
     
     func pageViewController(_ pageViewController: UIPageViewController, didFinishAnimating finished: Bool, previousViewControllers: [UIViewController], transitionCompleted completed: Bool) {
         
-//        let preIndex = self.index(ofVc: previousViewControllers[0] as! MyTableViewController)
-//        
-////        print("preIndex: \(preIndex)")
-//        let vcArr = pageViewController.viewControllers
-//        
-//        let index = self.index(ofVc: vcArr?[0] as! MyTableViewController)
-////        debugPrint("index: \(index)")
-//        
-//        if completed {
-//            moveTab(index, isSwipeRight: (index > preIndex))
-//        }
+        if completed {
+            let currentIndex: Int = self.index(ofVc: pageViewController.viewControllers![0] as! MyTableViewController)
+            self.currentTabLbl = self.tabTitleView(currentIndex)
+            self.pageScrollState = .none
+            debugPrint("finished: \(currentIndex)")
+        }else {
+//            debugPrint("uncompleted")
+        }
         
     }
     
@@ -326,10 +328,9 @@ extension FiPagerViewController: UIScrollViewDelegate {
 //            debugPrint(scrollView.contentOffset.x)
         }
         if scrollView == pageViewController.view.subviews[0] {
-            
             let ratio = scrollView.contentOffset.x/scrollView.frame.width - 1
             tabMovedWithOffsetRatio(ratio)
-//            print(ratio)
+            
         }
     }
     
@@ -357,7 +358,7 @@ class MyTableViewController: UITableViewController {
     }
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 10
+        return 20
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
