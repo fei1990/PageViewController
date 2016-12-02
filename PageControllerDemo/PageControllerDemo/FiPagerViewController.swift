@@ -14,24 +14,40 @@ enum PageScrollState {
     case swipe
 }
 
-let tabHeight: CGFloat = 26
+private let tabHeight: CGFloat = 30
 
-let tabGap: CGFloat = 10  //标签间隙
+private let tabGap: CGFloat = 25  //标签间隙
+
+private let SCALE_FACTOR = CGFloat(0.2)
+
+private let MAXSCALE_FACTOR = CGFloat(1.2)
+
+private let MINSCALE_FACTOR = MAXSCALE_FACTOR - SCALE_FACTOR
 
 class FiPagerViewController: UIViewController {
     
     fileprivate lazy var tabTitleSArr: Array = ["fdsf0","fdsfds1","fdsatree2","fdsgfdggrh3","gtrhrggdsgfds4","f5","fds6","fdsafdsa7","fdsafdsagfdsbgfd8","fdsfdsafdsaa9","dfsawe10","dfaefwa11","fdsafds12","fsfdsf13","fsfsafsfsdf14","fd15","fsf16"]
 
+    
+       // ["头条","头条","头条","头条","头条","头条","头条","头条","头条","头条","头条","头条","头条","头条","头条","头条","头条"]//
+    private lazy var contentView: UIView = {
+        let view: UIView = UIView()
+        view.backgroundColor = UIColor.red
+        return view
+    }()
+    
     fileprivate lazy var contentScrollView: UIScrollView? = {
         let scrollView: UIScrollView = UIScrollView(frame: CGRect(x: 0, y: 64, width: Int(self.view.frame.size.width), height: Int(tabHeight)))
         scrollView.autoresizingMask = .flexibleWidth
         scrollView.scrollsToTop = false
-//        scrollView.bounces = false
         scrollView.isDirectionalLockEnabled = true
         scrollView.showsVerticalScrollIndicator = false
         scrollView.showsHorizontalScrollIndicator = false
-        scrollView.backgroundColor = UIColor.red
+//        scrollView.backgroundColor = UIColor.red
         scrollView.delegate = self
+        scrollView.alwaysBounceVertical = false
+        
+        scrollView.addSubview(self.contentView)
         return scrollView
     }()
     
@@ -56,7 +72,7 @@ class FiPagerViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         self.view.backgroundColor = UIColor.white
-        
+        self.automaticallyAdjustsScrollViewInsets = false
         self.navigationItem.leftBarButtonItem = UIBarButtonItem.init(title: "返回", style: .plain, target: self, action: #selector(FiPagerViewController.dismissVc))
         
         reloadDataForPager()
@@ -100,11 +116,13 @@ class FiPagerViewController: UIViewController {
             
             let tabV: UIView = tabView(atIndex: index)
             
-            contentScrollView?.addSubview(tabV)
+            contentView.addSubview(tabV)
             
             contentWidth += (tabV.frame.size.width + CGFloat(tabGap))
+            
+            
         }
-        
+        contentView.frame = CGRect(x: 0, y: 0, width: contentWidth + CGFloat(tabGap), height: CGFloat(tabHeight))
         contentScrollView?.contentSize = CGSize(width: contentWidth + CGFloat(tabGap), height: CGFloat(tabHeight))
     }
     
@@ -137,6 +155,7 @@ class FiPagerViewController: UIViewController {
         let visibleRect = tabTitleLblVisibleRect(index)
         
         DispatchQueue.main.async {
+            self.currentTabLbl.layer.transform = CATransform3DMakeScale(MAXSCALE_FACTOR, MAXSCALE_FACTOR, MAXSCALE_FACTOR)
             self.pageViewController.setViewControllers([contentVc!], direction: .forward, animated: true, completion: nil)
             self.contentScrollView?.scrollRectToVisible(visibleRect, animated: false)
         }
@@ -152,16 +171,15 @@ class FiPagerViewController: UIViewController {
         tabTitleView_X += CGFloat(tabGap) + ((tabTitleView(index-1) == nil) ? 0 : (tabTitleView(index-1)! as UILabel).frame.size.width)
         
         let tabText = tabContent(self, atIndex: index)
-        let tabTextWidth: CGFloat = tabText.textWidth(CGFloat(tabHeight), fontSize: 14)
+        let tabTextWidth: CGFloat = tabText.textWidth(CGFloat(tabHeight), fontSize: 16)
         let lbl: UILabel = UILabel()
         lbl.tag = index
-        lbl.backgroundColor = UIColor.cyan
+//        lbl.backgroundColor = UIColor.cyan
         lbl.numberOfLines = 1
-        lbl.font = UIFont.systemFont(ofSize: 14)
+        lbl.font = UIFont.systemFont(ofSize: 16)
         lbl.text = tabText
         lbl.isUserInteractionEnabled = true
         lbl.frame = CGRect(x: tabTitleView_X, y: 0.0, width: tabTextWidth, height: CGFloat(tabHeight))
-        
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(tabViewTapped(_:)))
         lbl.addGestureRecognizer(tapGesture)
         
@@ -234,21 +252,35 @@ class FiPagerViewController: UIViewController {
         
         if self.pageScrollState == .swipe {
             
+            tabTitleViewTransform(offsetRatio)
+            
             let rect = CGRect(x: visibleRect_X + (self.nextTabLbl.frame.width/2 + self.currentTabLbl.frame.width/2 + tabGap) * offsetRatio, y: self.currentTabLbl.frame.minY, width: (self.contentScrollView?.frame.width)!, height: self.currentTabLbl.frame.height)
             contentScrollView?.scrollRectToVisible(rect, animated: false)
         }
         
     }
     
+    fileprivate func tabTitleViewTransform(_ offsetRatio: CGFloat) {
+        
+        self.nextTabLbl.layer.transform = CATransform3DMakeScale((MINSCALE_FACTOR + CGFloat(fabsf(Float(offsetRatio))) * SCALE_FACTOR), (MINSCALE_FACTOR + CGFloat(fabsf(Float(offsetRatio))) * SCALE_FACTOR), (MINSCALE_FACTOR + CGFloat(fabsf(Float(offsetRatio))) * SCALE_FACTOR))
+        
+        self.currentTabLbl.layer.transform = CATransform3DMakeScale((MAXSCALE_FACTOR - CGFloat(fabsf(Float(offsetRatio))) * SCALE_FACTOR), (MAXSCALE_FACTOR - CGFloat(fabsf(Float(offsetRatio))) * SCALE_FACTOR), (MAXSCALE_FACTOR - CGFloat(fabsf(Float(offsetRatio))) * SCALE_FACTOR))
+    }
+    
+    
     @objc private func tabViewTapped(_ tap: UIGestureRecognizer) {
         
         self.pageScrollState = .tap
+        
+        self.currentTabLbl.layer.transform = CATransform3DMakeScale(MINSCALE_FACTOR, MINSCALE_FACTOR, MINSCALE_FACTOR)
         
         let currentIndex = (tap.view as! UILabel).tag
         
         let rect = tabTitleLblVisibleRect(currentIndex)
         
         self.contentScrollView?.scrollRectToVisible(rect, animated: true)
+        
+        self.currentTabLbl.layer.transform = CATransform3DMakeScale(MAXSCALE_FACTOR, MAXSCALE_FACTOR, MAXSCALE_FACTOR)
         
         let contentVc = contentViewController(currentIndex)!
         self.pageViewController.setViewControllers([contentVc], direction: .forward, animated: true, completion: nil)
@@ -303,7 +335,7 @@ extension FiPagerViewController: UIPageViewControllerDataSource, UIPageViewContr
         
         self.visibleRect_X = self.currentTabLbl.frame.minX - ((self.contentScrollView?.frame.width)!/2 - self.currentTabLbl.frame.width/2)
         
-        debugPrint("currentIndex: \(currentIndex)...... pendingIndex: \(pendingIndex)")
+//        debugPrint("currentIndex: \(currentIndex)...... pendingIndex: \(pendingIndex)")
     }
     
     func pageViewController(_ pageViewController: UIPageViewController, didFinishAnimating finished: Bool, previousViewControllers: [UIViewController], transitionCompleted completed: Bool) {
@@ -311,7 +343,7 @@ extension FiPagerViewController: UIPageViewControllerDataSource, UIPageViewContr
         if completed {
             let currentIndex: Int = self.index(ofVc: pageViewController.viewControllers![0] as! MyTableViewController)
             self.currentTabLbl = self.tabTitleView(currentIndex)
-            self.pageScrollState = .none
+//            self.pageScrollState = .none
             debugPrint("finished: \(currentIndex)")
         }else {
 //            debugPrint("uncompleted")
@@ -325,12 +357,14 @@ extension FiPagerViewController: UIScrollViewDelegate {
     
     public func scrollViewDidScroll(_ scrollView: UIScrollView) {
         if scrollView == contentScrollView {
-//            debugPrint(scrollView.contentOffset.x)
+            
         }
         if scrollView == pageViewController.view.subviews[0] {
             let ratio = scrollView.contentOffset.x/scrollView.frame.width - 1
+            if ratio == 0 {
+                self.pageScrollState = .none
+            }
             tabMovedWithOffsetRatio(ratio)
-            
         }
     }
     
